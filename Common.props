@@ -2,6 +2,7 @@
     <PropertyGroup>
         <AssemblyName>wwwDayDream.$(MSBuildProjectName)</AssemblyName>
         <Product>$(MSBuildProjectName)</Product>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <!-- Set NuGet Sources -->
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
