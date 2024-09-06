@@ -1,0 +1,86 @@
+name: Organization Template Updates
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  get-repositories:
+    name: User Repositories
+    if: ${{ github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    outputs:
+      repositories: ${{ steps.user-grab.outputs.result }}
+      repositories-length: ${{ steps.user-grab.outputs.repositories-length }}
+    env:
+      this_repo: ${{ github.repository }}
+    steps:
+      - name: Get User Data
+        id: user-grab
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.USER_PAT }}
+          script: |
+            var request = await github.request('GET /user/repos');
+            if (request.status != 200)
+              throw new Error('Bad API response: ' + request.status);
+
+            var repos = (await Promise.all(
+              request.data.map(async i => await github.rest.repos.get({
+                  owner: i.owner.login, repo: i.name
+                })))).map(i => i.data)
+                .filter(i => !i.archived && !i.private && 
+                        i.template_repository != null && i.template_repository.full_name == process.env.this_repo);
+            core.setOutput('repositories-length', repos.length);
+            return repos;
+
+  update-matrix:
+    name: Update ${{ matrix.target-repo.full_name }}
+    needs: get-repositories
+    if: ${{ needs.get-repositories.outputs.repositories-length != '0' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target-repo: ${{ fromJson(needs.get-repositories.outputs.repositories) }}
+    env:
+      PR_BRANCH: updated/template/${{ github.event.repository.name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.USER_PAT }}
+          repository: ${{ matrix.target-repo.full_name }}
+          ref: ${{ matrix.target-repo.default_branch }}
+          fetch-depth: 0
+
+      - uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_SIGNING_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Merge Remote
+        id: merge
+        env:
+          REMOTE_FULLNAME: ${{ github.repository }}
+          REMOTE_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git checkout ${{ env.PR_BRANCH }} 2>/dev/null || git checkout -b ${{ env.PR_BRANCH }}
+          git remote add ${{ env.REMOTE_FULLNAME }} https://github.com/${{ env.REMOTE_FULLNAME }}.git
+          git fetch ${{ env.REMOTE_FULLNAME }} ${{ env.REMOTE_DEFAULT_BRANCH}}
+          git merge -X theirs --allow-unrelated-histories ${{ env.REMOTE_FULLNAME }}/${{ env.REMOTE_DEFAULT_BRANCH}}
+
+          echo 'GIT_DIFF<<EOF' >> $GITHUB_OUTPUT
+          git diff ${{ env.PR_BRANCH }} ${{ matrix.target-repo.default_branch }} >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+          
+      - name: Create PR
+        if: ${{ steps.merge.outputs.GIT_DIFF != ''}}
+        env:
+          GH_TOKEN: ${{ secrets.USER_PAT }}
+        run: |
+          git push --set-upstream origin ${{ env.PR_BRANCH }}
+          gh pr create --base ${{ matrix.target-repo.default_branch }} --head ${{ env.PR_BRANCH }} --title "Update Template '${{ github.event.repository.name }}'" --body "" || echo "PR already exists or another error occurred"
+          gh pr view --json url -t '{{.url}}' >> $GITHUB_STEP_SUMMARY
