@@ -3,7 +3,18 @@ namespace Utils
 open System.Collections.Generic
 open System.Threading.Tasks
 
+module ArrayExtensions =
+    let filterSome (array: 'T option array): 'T array =
+        array |> Array.filter (fun o -> o.IsSome) |> Array.map (fun o -> o.Value)
+        
 module Operators =
+    /// <summary>
+    /// Returns false if <paramref name="value"/> is None or evaluates <paramref name="expr"/> and returns the result.
+    /// </summary>
+    /// <param name="value">The option to check.</param>
+    /// <param name="expr">The function to execute with the value provided.</param>
+    let inline (?) (value: 'a option) (expr: 'a -> bool) : bool =
+        if value.IsSome then expr value.Value else false
     /// <summary>
     /// Pipes <paramref name="value"/> into a list of <paramref name="functions"/> and returns a list of the results.
     /// </summary>
