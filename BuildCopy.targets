@@ -1,0 +1,5 @@
+<Project>
+    <Target Condition="'$(GamePath)' != ''" Name="PostBuild" AfterTargets="Build">
+        <Copy SourceFiles="$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(GamePath)BepInEx\plugins\"/>
+    </Target>
+</Project>
