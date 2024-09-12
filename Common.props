@@ -21,9 +21,6 @@
     <ItemGroup>
         <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="all"/>
 
-        <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all"/>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
-
         <PackageReference Include="UnityEngine.Modules" Version="$(UnityVersion)" PrivateAssets="all" IncludeAssets="compile"/>
     </ItemGroup>
 </Project>
