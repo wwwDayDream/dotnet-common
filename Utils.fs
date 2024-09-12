@@ -23,6 +23,13 @@ type OptionBuilder() =
 
 module Operators =
     let optional = OptionBuilder()
+    /// <summary>Uses the left value if it .IsSome else returns def.</summary>
+    /// <param name="value"></param>
+    /// <param name="def"></param>
+    /// <typeparam name="'a"></typeparam>
+    /// <returns></returns>
+    let inline (??>) (value: 'a option) (def: 'a) : 'a =
+        if value.IsSome then value.Value else def
     /// <summary>
     /// Returns false if <paramref name="value"/> is None or evaluates <paramref name="expr"/> and returns the result.
     /// </summary>
