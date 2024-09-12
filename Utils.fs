@@ -23,6 +23,8 @@ type OptionBuilder() =
 
 module Operators =
     let optional = OptionBuilder()
+    let inline (~%) (value: int) = 
+        if value = 1 then "" else "s"
     /// <summary>Uses the left value if it .IsSome else returns def.</summary>
     /// <param name="value"></param>
     /// <param name="def"></param>
