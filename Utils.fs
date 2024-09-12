@@ -6,8 +6,23 @@ open System.Threading.Tasks
 module ArrayExtensions =
     let filterSome (array: 'T option array): 'T array =
         array |> Array.filter (fun o -> o.IsSome) |> Array.map (fun o -> o.Value)
-        
+
+/// <summary>Builds an option from a sequence of expressions. L</summary>
+type OptionBuilder() =
+    member _.Bind(opt, f) =
+        match opt with
+        | Some x -> f x
+        | None -> None
+    member _.Return(x) = Some x
+    member _.ReturnFrom(opt) = opt
+    member _.Zero() = None
+    member _.Combine(a, b) = 
+        match a with
+        | Some _ -> b()
+        | None -> None
+
 module Operators =
+    let optional = OptionBuilder()
     /// <summary>
     /// Returns false if <paramref name="value"/> is None or evaluates <paramref name="expr"/> and returns the result.
     /// </summary>
