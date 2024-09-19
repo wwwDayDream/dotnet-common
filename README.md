@@ -1,5 +1,5 @@
-# 
-
+# Dotnet Common
+A common place for a colleciton of utilities for .NET development environments.
 
 ### Support
 Please reach out on Discord: [Daydream Modding](https://discord.gg/Mherqbcmep), or create an issue on the repository here!
