@@ -1,0 +1,13 @@
+<Project>
+    <PropertyGroup>
+    </PropertyGroup>
+    <ItemGroup>
+        <TCLIManifest Include="namespace"><Value>www_Day_Dream</Value></TCLIManifest>
+        <TCLIManifest Include="name"><Value>WiresRateFix</Value></TCLIManifest>
+    </ItemGroup>
+
+    <Target Name="TestAfterBuidl" AfterTargets="Build">
+        <Message Importance="high" Text=":D"/>
+        <Message Importance="high" Text="%(TCLIManifest.Identity) = %(TCLIManifest.Value)"/>
+    </Target>
+</Project>

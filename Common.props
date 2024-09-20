@@ -21,6 +21,6 @@
     <ItemGroup>
         <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="all"/>
 
-        <PackageReference Include="UnityEngine.Modules" Version="$(UnityVersion)" PrivateAssets="all" IncludeAssets="compile"/>
+        <PackageReference Include="UnityEngine.Modules" Version="$(CommonUnityVersion)" PrivateAssets="all" IncludeAssets="compile"/>
     </ItemGroup>
 </Project>
