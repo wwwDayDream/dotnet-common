@@ -6,26 +6,26 @@
     </PropertyGroup>
 
     <!-- Setup PropertyGroups -->
-    <Target Name="SetupPropGroups">
+    <Target Name="CommonPropGroups">
         <PropertyGroup>
             <LIBS_PATH>$(MSBuildProjectDirectory)\libs</LIBS_PATH>
         </PropertyGroup>
     </Target>
     
     <!-- Include the paths of GameLib references on CI -->
-    <Target Name="UpdateGameLibPaths" Condition="'$(BuildGameLibs)' != 'true'" BeforeTargets="ResolveAssemblyReferences" DependsOnTargets="SetupPropGroups">
-        <Message Condition="'$(BuildFromGameLibs)' == 'true'" Importance="high" Text="Resolving ShoddyGameLib references from '$(LIBS_PATH)'"/>
+    <Target Name="UpdateGameLibPaths" BeforeTargets="ResolveAssemblyReferences" DependsOnTargets="CommonPropGroups">
+        <Message Condition="'$(BuildFromGameLibs)' == 'true' and '$(BuildGameLibs)' != 'true'" Importance="high" Text="Resolving ShoddyGameLib references from '$(LIBS_PATH)'"/>
 
-        <RemoveDir Condition="'$(BuildFromGameLibs)' == 'true'" Directories="$(LIBS_PATH)"/>
-        <Unzip Condition="'$(BuildFromGameLibs)' == 'true'" SourceFiles="$(GameLibsFileDir)" DestinationFolder="$(LIBS_PATH)" OverwriteReadOnlyFiles="true" ContinueOnError="true"/>
+        <RemoveDir Condition="'$(BuildFromGameLibs)' == 'true' and '$(BuildGameLibs)' != 'true'" Directories="$(LIBS_PATH)"/>
+        <Unzip Condition="'$(BuildFromGameLibs)' == 'true' and '$(BuildGameLibs)' != 'true'" SourceFiles="$(GameLibsFileDir)" DestinationFolder="$(LIBS_PATH)" OverwriteReadOnlyFiles="true" ContinueOnError="true"/>
         <ItemGroup>
-            <Reference Condition="'$(BuildFromGameLibs)' == 'true'" Include="$(LIBS_PATH)\$([System.IO.Path]::GetFileName('%(ShoddyReference.Identity)'))"/>
-            <Reference Condition="'$(BuildFromGameLibs)' != 'true'" Include="%(ShoddyReference.Identity)"/>
+            <Reference Condition="'$(BuildFromGameLibs)' == 'true' and '$(BuildGameLibs)' != 'true'" Include="$(LIBS_PATH)\$([System.IO.Path]::GetFileName('%(ShoddyReference.Identity)'))"/>
+            <Reference Condition="'$(BuildFromGameLibs)' != 'true' or '$(BuildGameLibs)' == 'true'" Include="%(ShoddyReference.Identity)"/>
         </ItemGroup>
     </Target>
 
     <!-- Strip and zip on local machines build success -->
-    <Target Name="StripPostBuild" AfterTargets="Build" Condition="'$(BuildFromGameLibs)' != 'true' and '$(BuildGameLibs)' == 'true'" DependsOnTargets="SetupPropGroups">
+    <Target Name="StripPostBuild" AfterTargets="Build" Condition="'$(BuildFromGameLibs)' != 'true' and '$(BuildGameLibs)' == 'true'" DependsOnTargets="CommonPropGroups">
         <Exec Command="dotnet tool list -g JetBrains.Refasmer.CliTool || dotnet tool install -g JetBrains.Refasmer.CliTool"/>
         <MakeDir Directories="$(LIBS_PATH)"/>
         <Message Importance="high" Text="Beginning Refasmer of @(ShoddyReference->Count()) references..."/>
